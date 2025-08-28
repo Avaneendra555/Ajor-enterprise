@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Passive Income Tips with Affiliate Links</title>
+</head>
+<body>
+  <h1>Share Your Passive Income Tips</h1>
+  <form method="POST" action="/">
+    <textarea name="tip" rows="4" cols="50" placeholder="Enter your tip here" required></textarea><br/>
+    <input type="url" name="affiliate_link" placeholder="Affiliate product link (optional)" style="width: 400px;"/><br/>
+    <button type="submit">Submit Tip</button>
+  </form>
+  <hr/>
+  <h2>Submitted Tips</h2>
+  <ul>
+    {% for tip in tips %}
+      <li>
+        {{ tip.text|e }}
+        {% if tip.affiliate_link %}
+          - <a href="{{ tip.affiliate_link|e }}" target="_blank" rel="nofollow noopener noreferrer">Check product</a>
+        {% endif %}
+      </li>
+    {% else %}
+      <li>No tips yet. Be the first to add one!</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
