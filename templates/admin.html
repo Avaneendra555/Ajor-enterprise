@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Approve Tips</title>
+</head>
+<body>
+  <h1>Pending Tips for Approval</h1>
+  {% if tips %}
+    <ul>
+      {% for tip in tips %}
+        <li>
+          {{ tip.text|e }}
+          {% if tip.affiliate_link %}
+            - <a href="{{ tip.affiliate_link|e }}" target="_blank" rel="nofollow noopener noreferrer">Affiliate Link</a>
+          {% endif %}
+          <form method="POST" action="/admin?password={{ request.args.get('password') }}" style="display:inline;">
+            <input type="hidden" name="tip_id" value="{{ tip.id }}" />
+            <button type="submit">Approve</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No pending tips found.</p>
+  {% endif %}
+</body>
+</html>
