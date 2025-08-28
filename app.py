@@ -1,0 +1,54 @@
+from flask import Flask, render_template, request, redirect, url_for, abort
+from flask_sqlalchemy import SQLAlchemy
+import os
+
+app = Flask(__name__)
+
+# Database config
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tips.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class Tip(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    affiliate_link = db.Column(db.String(500), nullable=True)
+    approved = db.Column(db.Boolean, default=False)
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        tip = request.form.get('tip')
+        affiliate_link = request.form.get('affiliate_link')
+        if tip:
+            new_tip = Tip(text=tip, affiliate_link=affiliate_link if affiliate_link else None, approved=False)
+            db.session.add(new_tip)
+            db.session.commit()
+        return redirect(url_for('index'))
+    # Show only approved tips
+    tips = Tip.query.filter_by(approved=True).all()
+    return render_template('index.html', tips=tips)
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        abort(403)  # Forbidden
+    if request.method == 'POST':
+        tip_id = request.form.get('tip_id')
+        tip = Tip.query.filter_by(id=tip_id).first()
+        if tip:
+            tip.approved = True
+            db.session.commit()
+    pending_tips = Tip.query.filter_by(approved=False).all()
+    return render_template('admin.html', tips=pending_tips)
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
